@@ -6,12 +6,17 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      yeet: "yeet! :P"
+      mousex: 0,
+      mousey: 0,
+      lastx: 0,
+      lasty: 0,
+      mouseDown: false,
+      cubes: null
     };
   }
 
   componentDidMount() {
-    var width = 8;
+    var width = 30;
     var height = width * window.innerHeight / window.innerWidth;
 
     var scene = new THREE.Scene();
@@ -22,23 +27,160 @@ class App extends Component {
     renderer.setSize( window.innerWidth, window.innerHeight );
     this.mount.appendChild(renderer.domElement);
 
-    const locations = [
-      [0, 0], [0, 1], [1, 0], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4]
+    var randomRange = function (a, b) {
+      return (Math.random() * (b - a)) + a;
+    };
+
+    const map = [
+      "  0 000                          ",
+      "  0 0 0                          ",
+      "  0 000                          ",
+      "0 0 0                            ",
+      "000 0                            ",
+      "                                 ",
+      "0000      0                      ",
+      "0 0 0     0                      ",
+      "0 0 0 000 000  00 000  00 0 0  0 ",
+      "0 0 0 0   0 0 0 0 0   0 0 0 0 0 0",
+      "0 0 0 000 0 0 000 0   000 000 000",
+      "                        0     0  ",
+      "                      00       00"
     ];
-    var cubes = [];
+    var baseLocations = [];
+    for (var i = 0; i < map.length; i++) {
+      for (var j = 0; j < map[i].length; j++) {
+        if (map[i][j] === '0') {
+          baseLocations.push([i, j]);
+          //baseLocations.push([j - 17, 4 - i, 0]);
+        }
+      }
+    }
+
+    var depths = new Array(map.length).fill(0).map(() => new Array(map[0].length).fill(-1));
+    var heights = new Array(map.length).fill(0).map(() => new Array(map[0].length).fill(-1));
+
+    var isFilled = function (row, col) {
+      if (row < 0 || row >= map.length || col < 0 || col >= map[0].length) {
+        return false;
+      }
+      return map[row][col] === '0';
+    }
+
+    var getDepth = function (row, col, d) {
+      if (!isFilled(row, col)) {
+        return -1;
+      }
+      if (!isFilled(row - 1, col) && !isFilled(row, col - 1) && !isFilled(row - 1, col - 1)) {
+        if (d > heights[row][col]) {
+          heights[row][col] = d;
+        }
+        return d;
+      }
+      var result = Math.max(
+        getDepth(row, col - 1, d + 1),
+        getDepth(row - 1, col, d + 1),
+        getDepth(row - 1, col - 1, d + 1)
+      );
+      if (result > heights[row][col]) {
+        heights[row][col] = result;
+      }
+      return result;
+    };
+
+    for (var loc of baseLocations) {
+      depths[loc[0]][loc[1]] = getDepth(loc[0], loc[1], 0);
+    }
+    console.log(depths);
+    console.log(heights);
+
+    var locations = [];
+    var range = 20;
+    for (var loc of baseLocations) {
+      var d = depths[loc[0]][loc[1]]
+      var h = heights[loc[0]][loc[1]]
+      var factor = randomRange(d / (h + 1), (d + 1) / (h + 1));
+      var adjust = range * factor;
+      adjust -= (range / 2);
+      var temp = [loc[1] - 17 + adjust, 4 - loc[0] - adjust, -adjust];
+      locations.push(temp);
+    }
+    //console.log(getDepth(4, 2));
+    //console.log(baseLocations);
+
+    /*
+    // Get forward depth
+    var mapCopy = [...map];
+    var forwardDepths = Array(baseLocations.length);
+    while (var i < map.length + map[0].length) {
+      var wasBlocked = false;
+      for (var j = 0; j < baseLocations.length; j++) {
+        l = baseLocations[j];
+        if (mapCopy[l[0]][l[1]] === '0') {
+          if (mapCopy[l[0] - 1][l[1]] === '0' || mapCopy[l[0]][l[1] - 1] === '0') {
+            wasBlocked = true;
+          } else {
+            forwardDepths[j] = i;
+            var str = mapCopy[l[0]];
+            mapCopy[l[0]] = str.substr(0, l[1]) + ' ' + str.substr(l[1] + 1);
+          }
+        }
+      }
+      if (!wasBlocked) {
+        break;
+      }
+      i++;
+    }
+    // Get backwards depths
+    mapCopy = [...map];
+    var backwardDepths = Array(baseLocations.length);
+    while (var i < map.length + map[0].length) {
+      var wasBlocked = false;
+      for (var j = 0; j < baseLocations.length; j++) {
+        l = baseLocations[j];
+        if (mapCopy[l[0]][l[1]] === '0') {
+          if (mapCopy[l[0] - 1][l[1]] === '0' || mapCopy[l[0]][l[1] - 1] === '0') {
+            wasBlocked = true;
+          } else {
+            forwardDepths[j] = i;
+            var str = mapCopy[l[0]];
+            mapCopy[l[0]] = str.substr(0, l[1]) + ' ' + str.substr(l[1] + 1);
+          }
+        }
+      }
+      if (!wasBlocked) {
+        break;
+      }
+      i++;
+    }
+    */
+
+    //console.log(locations);
+    //var locations = [[0, 0]];
+    const cubes = new THREE.Group();
 
     var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshStandardMaterial({color: 0xffffff});
+
     for (var l of locations) {
       var cube = new THREE.Mesh(geometry, material);
-      cube.position.set(l[0], l[1], 0);
-      cubes.push(cube);
-      scene.add(cube);
+      cube.position.set(l[0], l[1], l[2]);
+      cubes.add(cube);
     }
+    cubes.position.set(25, -20, -35);
+    scene.add(cubes);
+    this.setState({cubes: cubes});
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(-0.2, 2, 1);
-    dirLight.target = cube;
+    /*
+    var cube1 = new THREE.Mesh(geometry, material);
+    cube1.position.set(0, 0, 0);
+    var cube2 = new THREE.Mesh(geometry, material);
+    cube2.position.set(0.1, -0.1, -0.1);
+    scene.add(cube1, cube2);
+    */
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(-2, 10, 20);
+    dirLight.lookAt(new THREE.Vector3(0, 0, 0));
 
     const ambLight = new THREE.AmbientLight(0xffffff, 0.1);
 
@@ -49,27 +191,56 @@ class App extends Component {
 
     //camera.position.set(-2.1, 2.1, 2.1);
     const cameraDistance = 4;
-    camera.position.set(-4, 4, 4);
-    camera.rotation.set(-Math.PI/5, -Math.PI/4, 0, 'YXZ');
+    camera.position.set(-cameraDistance, cameraDistance, cameraDistance);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    //camera.rotation.set(-Math.atan(Math.SQRT2/2), -Math.PI/4, 0, 'YXZ');
     //camera.rotation.set(-Math.PI/2, 0, 0);
     //camera.rotation.set(-Math.PI/4, -Math.PI/4, Math.PI/4);
 
-    //var rotateSpeed = 0.002;
     var loop = function () {
       requestAnimationFrame(loop);
-
-      //camera.rotation.y -= 0.01;
-      //cube.rotation.x += rotateSpeed;
-      //cube.rotation.y += rotateSpeed;
+      cubes.rotation.y *= 0.9;
+      cubes.rotation.x *= 0.9;
       renderer.render( scene, camera );
     };
     loop();
 
   }
 
+  handleMouseDown = event => {
+    document.getElementById("name").style.cursor = "grabbing";
+    this.setState({mouseDown: true});
+  }
+
+  handleMouseUp = event => {
+    document.getElementById("name").style.cursor = "grab";
+    this.setState({mouseDown: false});
+  }
+
+  handleMouseMove = event => {
+    var lastx = this.state.mousex;
+    var lasty = this.state.mousey;
+    this.setState({
+      mousex: event.clientX,
+      mousey: event.clientY,
+      lastx: lastx,
+      lasty: lasty
+    });
+    console.log(this.state);
+    if (this.state.mouseDown) {
+      this.state.cubes.rotation.y += (event.clientX - lastx) * 0.001;
+      this.state.cubes.rotation.x += (event.clientY - lasty) * 0.001;
+    }
+  }
+
   render() {
     return (
-      <div id="name" ref={ref => (this.mount = ref)} />
+      <div id="name"
+        ref={ref => (this.mount = ref)}
+        onMouseDown={this.handleMouseDown}
+        onMouseUp={this.handleMouseUp}
+        onMouseMove={this.handleMouseMove}
+      />
     );
   }
 }
