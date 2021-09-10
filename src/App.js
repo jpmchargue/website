@@ -142,6 +142,7 @@ class App extends Component {
     camera.position.set(-cameraDistance, cameraDistance, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+    cubes.rotation.y = -Math.PI/4;
     var loop = function () {
       requestAnimationFrame(loop);
       cubes.rotation.y *= 0.9;
