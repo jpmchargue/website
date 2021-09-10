@@ -24,8 +24,19 @@ class App extends Component {
     //const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     var renderer = new THREE.WebGLRenderer();
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize(window.innerWidth, window.innerHeight);
     this.mount.appendChild(renderer.domElement);
+
+    function onWindowResize(){
+        var width = 30;
+        var height = width * window.innerHeight / window.innerWidth;
+        camera.left = -width;
+        camera.right = width;
+        camera.top = height;
+        camera.bottom = -height;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener('resize', onWindowResize, false );
 
     var randomRange = function (a, b) {
       return (Math.random() * (b - a)) + a;
@@ -90,8 +101,6 @@ class App extends Component {
     for (var loc of baseLocations) {
       depths[loc[0]][loc[1]] = getDepth(loc[0], loc[1], 0);
     }
-    console.log(depths);
-    console.log(heights);
 
     var locations = [];
     var range = 20;
@@ -104,58 +113,7 @@ class App extends Component {
       var temp = [loc[1] - 17 + adjust, 4 - loc[0] - adjust, -adjust];
       locations.push(temp);
     }
-    //console.log(getDepth(4, 2));
-    //console.log(baseLocations);
 
-    /*
-    // Get forward depth
-    var mapCopy = [...map];
-    var forwardDepths = Array(baseLocations.length);
-    while (var i < map.length + map[0].length) {
-      var wasBlocked = false;
-      for (var j = 0; j < baseLocations.length; j++) {
-        l = baseLocations[j];
-        if (mapCopy[l[0]][l[1]] === '0') {
-          if (mapCopy[l[0] - 1][l[1]] === '0' || mapCopy[l[0]][l[1] - 1] === '0') {
-            wasBlocked = true;
-          } else {
-            forwardDepths[j] = i;
-            var str = mapCopy[l[0]];
-            mapCopy[l[0]] = str.substr(0, l[1]) + ' ' + str.substr(l[1] + 1);
-          }
-        }
-      }
-      if (!wasBlocked) {
-        break;
-      }
-      i++;
-    }
-    // Get backwards depths
-    mapCopy = [...map];
-    var backwardDepths = Array(baseLocations.length);
-    while (var i < map.length + map[0].length) {
-      var wasBlocked = false;
-      for (var j = 0; j < baseLocations.length; j++) {
-        l = baseLocations[j];
-        if (mapCopy[l[0]][l[1]] === '0') {
-          if (mapCopy[l[0] - 1][l[1]] === '0' || mapCopy[l[0]][l[1] - 1] === '0') {
-            wasBlocked = true;
-          } else {
-            forwardDepths[j] = i;
-            var str = mapCopy[l[0]];
-            mapCopy[l[0]] = str.substr(0, l[1]) + ' ' + str.substr(l[1] + 1);
-          }
-        }
-      }
-      if (!wasBlocked) {
-        break;
-      }
-      i++;
-    }
-    */
-
-    //console.log(locations);
-    //var locations = [[0, 0]];
     const cubes = new THREE.Group();
 
     var geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -166,17 +124,9 @@ class App extends Component {
       cube.position.set(l[0], l[1], l[2]);
       cubes.add(cube);
     }
-    cubes.position.set(25, -20, -35);
+    cubes.position.set(25, -24, -35);
     scene.add(cubes);
     this.setState({cubes: cubes});
-
-    /*
-    var cube1 = new THREE.Mesh(geometry, material);
-    cube1.position.set(0, 0, 0);
-    var cube2 = new THREE.Mesh(geometry, material);
-    cube2.position.set(0.1, -0.1, -0.1);
-    scene.add(cube1, cube2);
-    */
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
     dirLight.position.set(-2, 10, 20);
@@ -188,14 +138,9 @@ class App extends Component {
 
     scene.add(dirLight, ambLight, lightHelper);
 
-
-    //camera.position.set(-2.1, 2.1, 2.1);
     const cameraDistance = 4;
     camera.position.set(-cameraDistance, cameraDistance, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
-    //camera.rotation.set(-Math.atan(Math.SQRT2/2), -Math.PI/4, 0, 'YXZ');
-    //camera.rotation.set(-Math.PI/2, 0, 0);
-    //camera.rotation.set(-Math.PI/4, -Math.PI/4, Math.PI/4);
 
     var loop = function () {
       requestAnimationFrame(loop);
@@ -217,6 +162,11 @@ class App extends Component {
     this.setState({mouseDown: false});
   }
 
+  handleMouseOut = event => {
+    document.getElementById("name").style.cursor = "grab";
+    this.setState({mouseDown: false});
+  }
+
   handleMouseMove = event => {
     var lastx = this.state.mousex;
     var lasty = this.state.mousey;
@@ -226,7 +176,6 @@ class App extends Component {
       lastx: lastx,
       lasty: lasty
     });
-    console.log(this.state);
     if (this.state.mouseDown) {
       this.state.cubes.rotation.y += (event.clientX - lastx) * 0.001;
       this.state.cubes.rotation.x += (event.clientY - lasty) * 0.001;
@@ -235,12 +184,22 @@ class App extends Component {
 
   render() {
     return (
+      <div>
       <div id="name"
         ref={ref => (this.mount = ref)}
         onMouseDown={this.handleMouseDown}
         onMouseUp={this.handleMouseUp}
         onMouseMove={this.handleMouseMove}
+        onMouseOut={this.handleMouseOut}
       />
+      <div id="links">
+        <div class="link"><a href="https://twitter.com/jpmchargue" style={{color: '#0ff'}}>Twitter</a></div>
+        <div class="link"><a href="https://www.linkedin.com/in/james-mchargue-b98133180/" style={{color: '#44f'}}>LinkedIn</a></div>
+        <div class="link"><a href="https://github.com/jpmchargue" style={{color: '#888'}}>GitHub</a></div>
+        <div class="link"><a href="https://store.steampowered.com/app/997260/Hyper_Scuffle/" style={{color: '#ff0047'}}>Hyper Scuffle</a></div>
+        <div class="link"><a href="https://github.com/jpmchargue/website" style={{color: 'white'}}>How I made this</a></div>
+      </div>
+      </div>
     );
   }
 }

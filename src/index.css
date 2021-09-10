@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: black;
 }
 
 code {
@@ -14,4 +15,16 @@ code {
 
 #name {
   cursor: grab;
+}
+
+#links {
+  position: absolute;
+  top: 40%;
+  left: 60%;
+}
+
+.link {
+  font-family: monospace;
+  font-size: 32px;
+  margin: 6px;
 }
