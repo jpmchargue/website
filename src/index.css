@@ -24,7 +24,7 @@ code {
 }
 
 .link {
-  font-family: monospace;
+  font-family: 'Overpass Mono', monospace;
   font-size: 32px;
   margin: 6px;
 }

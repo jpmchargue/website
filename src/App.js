@@ -145,8 +145,8 @@ class App extends Component {
     cubes.rotation.y = -Math.PI/4;
     var loop = function () {
       requestAnimationFrame(loop);
-      cubes.rotation.y *= 0.9;
-      cubes.rotation.x *= 0.9;
+      cubes.rotation.y *= 0.94;
+      cubes.rotation.x *= 0.94;
       renderer.render( scene, camera );
     };
     loop();
