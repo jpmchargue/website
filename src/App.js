@@ -198,6 +198,7 @@ class App extends Component {
         <div class="link"><a href="https://www.linkedin.com/in/james-mchargue-b98133180/" style={{color: '#44f'}}>LinkedIn</a></div>
         <div class="link"><a href="https://github.com/jpmchargue" style={{color: '#888'}}>GitHub</a></div>
         <div class="link"><a href="https://store.steampowered.com/app/997260/Hyper_Scuffle/" style={{color: '#ff0047'}}>Hyper Scuffle</a></div>
+        <div class="link"><a href="https://jpmchargue.itch.io/recursive-repairman" style={{color: '#fc9803'}}>Recursive Repairman</a></div>
         <div class="link"><a href="https://github.com/jpmchargue/website" style={{color: 'white'}}>How I made this</a></div>
       </div>
       </div>
